@@ -9,10 +9,16 @@ User = get_user_model()
 
 def generate_token():
 	# Generate a unique 6-digit code as a string
-	from .models import BallotToken
+	# Import inside function to avoid circular import, but use string reference
+	from django.apps import apps
 	while True:
 		code = f"{random.randint(0, 999999):06d}"
-		if not BallotToken.objects.filter(token=code).exists():
+		try:
+			BallotToken = apps.get_model('vote', 'BallotToken')
+			if not BallotToken.objects.filter(token=code).exists():
+				return code
+		except LookupError:
+			# Model not yet registered (during initial migration)
 			return code
 
 class Candidate(models.Model):
