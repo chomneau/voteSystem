@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+                        <style>
+                            /* Animated shadow for president and vice president cards */
+                            .bling-shadow {
+                                position: relative;
+                                border-radius: 1.25rem;
+                                z-index: 0;
+                                animation: shadow-glow 2.5s linear infinite;
+                            }
+                            @keyframes shadow-glow {
+                                0% {
+                                    box-shadow: 0 0 0 0 rgba(0,255,0,0.5), 0 0 0 0 rgba(0,234,255,0.5), 0 0 0 0 rgba(255,27,107,0.5);
+                                }
+                                25% {
+                                    box-shadow: 0 0 16px 4px rgba(0,255,0,0.7), 0 0 32px 8px rgba(0,234,255,0.5), 0 0 8px 2px rgba(255,27,107,0.4);
+                                }
+                                50% {
+                                    box-shadow: 0 0 32px 8px rgba(162,89,255,0.7), 0 0 16px 4px rgba(249,206,52,0.5), 0 0 16px 4px rgba(0,234,255,0.4);
+                                }
+                                75% {
+                                    box-shadow: 0 0 16px 4px rgba(255,27,107,0.7), 0 0 32px 8px rgba(0,255,0,0.5), 0 0 8px 2px rgba(162,89,255,0.4);
+                                }
+                                100% {
+                                    box-shadow: 0 0 0 0 rgba(0,255,0,0.5), 0 0 0 0 rgba(0,234,255,0.5), 0 0 0 0 rgba(255,27,107,0.5);
+                                }
+                            }
+                        </style>
+            <style>
+                .animated-border {
+                    position: relative;
+                    z-index: 0;
+                    overflow: visible;
+                }
+                .animated-border::before {
+                    content: '';
+                    position: absolute;
+                    z-index: 2;
+                    top: -4px; left: -4px; right: -4px; bottom: -4px;
+                    border-radius: 1rem;
+                    background: conic-gradient(
+                        from 0deg,
+                        #38bdf8 0deg,
+                        #a78bfa 90deg,
+                        #facc15 180deg,
+                        #38bdf8 270deg,
+                        #38bdf8 360deg
+                    );
+                    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                    -webkit-mask-composite: xor;
+                    mask-composite: exclude;
+                    padding: 0;
+                    pointer-events: none;
+                    animation: border-run 2.5s linear infinite;
+                }
+                @keyframes border-run {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                .animated-border > * {
+                    position: relative;
+                    z-index: 3;
+                }
+            </style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Voting Results</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            @keyframes fade-in {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-fade-in { animation: fade-in 1s ease; }
+            @keyframes bounce-in {
+                0% { transform: scale(0.8); opacity: 0; }
+                60% { transform: scale(1.05); opacity: 1; }
+                100% { transform: scale(1); }
+            }
+            .animate-bounce-in { animation: bounce-in 0.8s cubic-bezier(.68,-0.55,.27,1.55); }
+            @keyframes fade-in-up {
+                0% { opacity: 0; transform: translateY(40px); }
+                100% { opacity: 1; transform: translateY(0); }
+            }
+            .animate-fade-in-up { animation: fade-in-up 0.8s cubic-bezier(.68,-0.55,.27,1.55) both; }
+            .delay-0 { animation-delay: 0s; }
+            .delay-1 { animation-delay: 0.2s; }
+            .delay-2 { animation-delay: 0.4s; }
+            .delay-3 { animation-delay: 0.6s; }
+        </style>
+</head>
+<body class="bg-gradient-to-br from-blue-100 via-blue-50 to-blue-200 min-h-screen flex items-center justify-center">
+    <div class="bg-white/90 backdrop-blur rounded-2xl shadow-2xl p-8 max-w-screen-xl w-full flex flex-col items-center border border-blue-100 animate-fade-in" style="margin:50px;">
+        <h1 class="text-3xl font-extrabold text-blue-700 mb-6 text-center tracking-tight animate-bounce-in">Live Voting Results</h1>
+        <!-- Original 3 stats cards at the top -->
+        <div class="flex flex-col md:flex-row gap-6 w-full mb-8 justify-center items-stretch">
+            <div class="flex-1 min-w-0 bg-blue-50 rounded-lg p-6 flex flex-col items-center shadow border border-blue-100 animate-bounce-in">
+                <span class="mb-2"><svg class="w-8 h-8 text-blue-500 animate-spin-slow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-20"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg></span>
+                <span class="text-lg font-semibold text-blue-700">Waiting to Vote</span>
+                <span id="waiting-count" class="text-3xl font-mono text-blue-900 mt-2">0</span>
+            </div>
+            <div class="flex-1 min-w-0 bg-yellow-50 rounded-lg p-6 flex flex-col items-center shadow border border-yellow-100 animate-bounce-in">
+                <span class="mb-2"><svg class="w-8 h-8 text-yellow-500 animate-bounce" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>
+                <span class="text-lg font-semibold text-yellow-700">Voters Joined</span>
+                <span id="voter-count" class="text-3xl font-mono text-yellow-900 mt-2">0</span>
+            </div>
+            <div class="flex-1 min-w-0 bg-green-50 rounded-lg p-6 flex flex-col items-center shadow border border-green-100 animate-bounce-in">
+                <span class="mb-2"><svg class="w-8 h-8 text-green-500 animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-6h6v6m-6 0a3 3 0 006 0"/></svg></span>
+                <span class="text-lg font-semibold text-green-700">Voted</span>
+                <span id="voted-count" class="text-3xl font-mono text-green-900 mt-2">0</span>
+            </div>
+        </div>
+        <!-- Top 4 vote cards below -->
+        <div class="flex flex-col md:flex-row gap-6 w-full mb-6 justify-center items-stretch">
+            <div class="flex-1 min-w-[180px] max-w-xs bg-gradient-to-br from-blue-200 to-blue-400 rounded-lg p-6 flex flex-col items-center shadow bling-shadow animate-fade-in-up delay-0">
+                <span class="text-lg font-bold text-blue-900 mb-2">President</span>
+                <span id="president-name" class="text-xl font-semibold text-blue-800">-</span>
+                <span id="president-votes" class="text-2xl font-mono text-blue-900 mt-1">0</span>
+            </div>
+            <div class="flex-1 min-w-[180px] max-w-xs bg-gradient-to-br from-yellow-200 to-yellow-400 rounded-lg p-6 flex flex-col items-center shadow bling-shadow animate-fade-in-up delay-1">
+                <span class="text-lg font-bold text-yellow-900 mb-2">Vice President</span>
+                <span id="vice-president-name" class="text-xl font-semibold text-yellow-800">-</span>
+                <span id="vice-president-votes" class="text-2xl font-mono text-yellow-900 mt-1">0</span>
+            </div>
+            <div class="flex-1 min-w-[180px] max-w-xs bg-gradient-to-br from-green-200 to-green-400 rounded-lg p-6 flex flex-col items-center shadow animated-border animate-fade-in-up delay-2">
+                <span class="text-lg font-bold text-green-900 mb-2">Member 1</span>
+                <span id="member1-name" class="text-xl font-semibold text-green-800">-</span>
+                <span id="member1-votes" class="text-2xl font-mono text-green-900 mt-1">0</span>
+            </div>
+            <div class="flex-1 min-w-[180px] max-w-xs bg-gradient-to-br from-purple-200 to-purple-400 rounded-lg p-6 flex flex-col items-center shadow animated-border animate-fade-in-up delay-3">
+                <span class="text-lg font-bold text-purple-900 mb-2">Member 2</span>
+                <span id="member2-name" class="text-xl font-semibold text-purple-800">-</span>
+                <span id="member2-votes" class="text-2xl font-mono text-purple-900 mt-1">0</span>
+            </div>
+        </div>
+        <div class="w-full mt-8">
+            <h2 class="text-xl font-bold text-blue-700 mb-4">Candidate Results</h2>
+            <div id="candidate-list" class="bg-white rounded-lg p-4 shadow border border-blue-100 animate-fade-in mb-8 grid grid-cols-1 md:grid-cols-6 gap-4">
+                <div class="text-gray-500 col-span-6">Loading...</div>
+            </div>
+            <h2 class="text-xl font-bold text-blue-700 mb-4">Voter List</h2>
+            <div id="voter-list" class="bg-gray-50 rounded-lg p-4 shadow border border-gray-200 animate-fade-in" style="max-height:400px;overflow-y:auto;">
+                <div class="text-gray-500">Loading...</div>
+            </div>
+        </div>
+        <div class="text-xs text-gray-500 text-center mt-4">Results update live. For help, contact the election organizer.</div>
+    </div>
+    <style>
+    @keyframes spin-slow {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .animate-spin-slow { animation: spin-slow 3s linear infinite; }
+    </style>
+    <script>
+    async function updateStats() {
+        try {
+            const res = await fetch("/vote/api/landing_stats/");
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById("voter-count").textContent = data.voter_count;
+                document.getElementById("waiting-count").textContent = data.waiting_count;
+                document.getElementById("voted-count").textContent = data.voted_count;
+                // Top 4 cards
+                const top = data.results;
+                const cardIds = [
+                    ["president-name", "president-votes"],
+                    ["vice-president-name", "vice-president-votes"],
+                    ["member1-name", "member1-votes"],
+                    ["member2-name", "member2-votes"]
+                ];
+                for (let i = 0; i < 4; i++) {
+                    const nameId = cardIds[i][0];
+                    const votesId = cardIds[i][1];
+                    if (top[i]) {
+                        document.getElementById(nameId).textContent = top[i].candidate;
+                        document.getElementById(votesId).textContent = top[i].votes;
+                    } else {
+                        document.getElementById(nameId).textContent = "-";
+                        document.getElementById(votesId).textContent = "0";
+                    }
+                }
+                // Candidate results in 6 columns, 10 rows each
+                let candidateHtml = '';
+                let colCount = 6;
+                let rowCount = 10;
+                let total = data.results.length;
+                for (let col = 0; col < colCount; col++) {
+                    candidateHtml += `<div class='flex flex-col gap-1'>`;
+                    for (let row = 0; row < rowCount; row++) {
+                        let idx = col * rowCount + row;
+                        if (idx < total) {
+                            let result = data.results[idx];
+                            candidateHtml += `<div class='flex items-center justify-between w-full text-base py-1 border-b border-blue-50'>
+                                <span class='flex items-center gap-2'>
+                                    <svg class='w-5 h-5 text-blue-400' fill='none' stroke='currentColor' stroke-width='2' viewBox='0 0 24 24'><circle cx='12' cy='8' r='4' /><path d='M4 20c0-4 4-7 8-7s8 3 8 7' /></svg>
+                                    <span class='font-semibold text-blue-700'>${result.candidate}</span>
+                                </span>
+                                <span class='font-mono font-bold text-green-700'>${result.votes}</span>
+                            </div>`;
+                        }
+                    }
+                    candidateHtml += `</div>`;
+                }
+                document.getElementById("candidate-list").innerHTML = candidateHtml || '<div class="text-gray-500 col-span-6">No candidates yet.</div>';
+                // Voter list
+                let listHtml = '';
+                for (const voter of data.voters || []) {
+                    listHtml += `<div class='flex justify-between py-1 border-b border-gray-100'><span class='font-mono text-gray-700'>${voter.token}</span><span class='text-xs text-gray-500'>${voter.status}</span></div>`;
+                }
+                document.getElementById("voter-list").innerHTML = listHtml || '<div class="text-gray-500">No voters yet.</div>';
+            }
+        } catch (e) {}
+    }
+    updateStats();
+    setInterval(updateStats, 2000);
+    </script>
+</body>
+</html>

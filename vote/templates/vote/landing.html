@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CI Cambodia Staff Vote</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white min-h-screen flex items-center justify-center">
+    <div class="p-10 max-w-5xl w-full flex flex-col items-center justify-center min-h-[60vh]">
+        <h1 class="text-3xl font-extrabold text-blue-500 mb-5 text-center drop-shadow-lg">Staff Representative Voting</h1>
+        <p class="text-2xl text-gray-700 mb-5 text-center max-w-3xl">Scan the QR code below with your phone to begin voting.<br>Each scan generates a unique, anonymous ballot.</p>
+        <div class="mb-8 flex justify-center w-full">
+            <img src="{{ qr_url }}" alt="Scan to vote" class="w-[400px] h-[400px] max-w-full mx-auto rounded-3xl border-8 border-blue-300 shadow-2xl bg-white" />
+        </div>
+        <!-- Voting Status Switch -->
+        <style>
+            .switch-knob {
+                transition: transform 0.35s cubic-bezier(.4,2,.6,1), background 0.2s;
+            }
+            .switch-btn {
+                transition: background 0.35s cubic-bezier(.4,2,.6,1), border-color 0.35s;
+            }
+        </style>
+        <form id="voting-switch-form" method="post" class="w-full max-w-xl mx-auto flex flex-col items-center mb-8">
+            {% csrf_token %}
+            <input type="hidden" id="action-input" name="action" value="{% if voting_open %}close{% else %}open{% endif %}">
+            <div class="flex items-center gap-6 mb-4">
+                <span class="text-2xl font-bold text-gray-400 select-none {% if not voting_open %}text-red-500{% endif %}">CLOSED</span>
+                <div id="voting-switch-wrapper" class="relative inline-flex items-center justify-start h-14 w-28 rounded-full focus:outline-none focus:ring-4 focus:ring-blue-300 shadow-lg border-4 cursor-pointer select-none
+                    {% if voting_open %}bg-green-500 border-green-400{% else %}bg-gray-300 border-gray-400{% endif %}" data-open="{% if voting_open %}true{% else %}false{% endif %}">
+                    <span id="switch-knob" class="switch-knob absolute w-10 h-10 rounded-full bg-white shadow-xl flex items-center justify-center"
+                        style="top: 50%; left: 4px; transform: translateY(-50%){% if voting_open %} translateX(56px){% endif %};">
+                        <svg id="knob-icon-check" class="w-6 h-6 text-green-500 {% if not voting_open %}hidden{% endif %}" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <svg id="knob-icon-x" class="w-6 h-6 text-red-400 {% if voting_open %}hidden{% endif %}" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </span>
+                </div>
+                <span class="text-2xl font-bold text-gray-400 select-none {% if voting_open %}text-green-600{% endif %}">OPEN</span>
+            </div>
+            <div class="w-full flex justify-center mb-2">
+                <span class="px-8 py-3 rounded-full text-2xl font-bold shadow-lg
+                    {% if voting_open %}bg-green-100 text-green-700 border-2 border-green-400{% else %}bg-red-100 text-red-600 border-2 border-red-300{% endif %}">
+                    {% if voting_open %}Voting is OPEN{% else %}Voting is CLOSED{% endif %}
+                </span>
+            </div>
+            <div class="text-lg text-gray-500 mt-2">Click the switch to open or close voting</div>
+        </form>
+        <!-- Confirm Modal -->
+        <div id="confirm-overlay" class="fixed inset-0 bg-slate-900/60 z-40 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+        <div id="confirm-modal" class="fixed left-1/2 top-1/2 z-50 opacity-0 pointer-events-none transition-all duration-300" style="transform: translate(-50%,-50%) scale(0.95); min-width: 320px; max-width: 90vw;"></div>
+        <script>
+            // Voting switch logic: single click, confirm modal, then submit
+            document.addEventListener('DOMContentLoaded', function() {
+                var switchBtn = document.getElementById('voting-switch-wrapper');
+                var actionInput = document.getElementById('action-input');
+                var form = document.getElementById('voting-switch-form');
+                var knob = document.getElementById('switch-knob');
+                var overlay = document.getElementById('confirm-overlay');
+                var modal = document.getElementById('confirm-modal');
+
+                function showConfirmModal(actionText, onConfirm) {
+                    var isOpening = actionText === 'open';
+                    modal.innerHTML = `
+                      <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-8 mx-auto flex flex-col items-center animate-pop">
+                        <div class="mb-3">
+                          <svg class="w-16 h-16 ${isOpening ? 'text-green-500' : 'text-red-400'}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            ${isOpening
+                              ? '<circle cx="12" cy="12" r="10" stroke="#22c55e" stroke-width="2" fill="#bbf7d0"/><path stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 12l2.5 2.5L16 9"/>'
+                              : '<circle cx="12" cy="12" r="10" stroke="#f87171" stroke-width="2" fill="#fee2e2"/><path stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 9l6 6M15 9l-6 6"/>'}
+                          </svg>
+                        </div>
+                        <div class="text-2xl font-bold ${isOpening ? 'text-green-700' : 'text-red-600'} mb-2 text-center">${isOpening ? 'Open Voting?' : 'Close Voting?'}</div>
+                        <div class="mb-4 text-center text-gray-600 text-lg">${isOpening ? 'This will allow voters to submit their votes.' : 'This will stop voters from submitting votes.'}</div>
+                        <div class="flex gap-4 w-full justify-center">
+                          <button id="confirm-cancel" class="flex-1 px-5 py-2 rounded-full bg-gray-100 text-gray-700 border border-gray-300 font-semibold hover:bg-gray-200 transition text-lg">Cancel</button>
+                          <button id="confirm-ok" class="flex-1 px-5 py-2 rounded-full ${isOpening ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'} text-white font-bold shadow transition text-lg">${isOpening ? 'Open' : 'Close'}</button>
+                        </div>
+                      </div>
+                    `;
+                    overlay.classList.remove('opacity-0', 'pointer-events-none');
+                    overlay.classList.add('opacity-100');
+                    modal.classList.remove('opacity-0', 'pointer-events-none');
+                    modal.classList.add('opacity-100');
+                    modal.style.transform = 'translate(-50%,-50%) scale(1)';
+                    document.getElementById('confirm-ok').onclick = function() {
+                        hideModal();
+                        onConfirm();
+                    };
+                    document.getElementById('confirm-cancel').onclick = function() {
+                        hideModal();
+                    };
+                }
+                function hideModal() {
+                    overlay.classList.remove('opacity-100');
+                    overlay.classList.add('opacity-0', 'pointer-events-none');
+                    modal.classList.remove('opacity-100');
+                    modal.classList.add('opacity-0', 'pointer-events-none');
+                    modal.style.transform = 'translate(-50%,-50%) scale(0.95)';
+                }
+                if (switchBtn && actionInput && form && knob) {
+                    // Use mousedown for immediate response
+                    switchBtn.onmousedown = function(e) {
+                        e.preventDefault();
+                        var isOpen = switchBtn.getAttribute('data-open') === 'true';
+                        var newAction = isOpen ? 'close' : 'open';
+                        showConfirmModal(newAction, function() {
+                            // Animate knob before submitting
+                            if (isOpen) {
+                                knob.style.transform = 'translateY(-50%) translateX(0px)';
+                                switchBtn.classList.remove('bg-green-500', 'border-green-400');
+                                switchBtn.classList.add('bg-gray-300', 'border-gray-400');
+                            } else {
+                                knob.style.transform = 'translateY(-50%) translateX(56px)';
+                                switchBtn.classList.remove('bg-gray-300', 'border-gray-400');
+                                switchBtn.classList.add('bg-green-500', 'border-green-400');
+                            }
+                            actionInput.value = newAction;
+                            setTimeout(function() {
+                                form.submit();
+                            }, 350);
+                        });
+                    };
+                    // Also handle touch for mobile
+                    switchBtn.ontouchstart = function(e) {
+                        e.preventDefault();
+                        var isOpen = switchBtn.getAttribute('data-open') === 'true';
+                        var newAction = isOpen ? 'close' : 'open';
+                        showConfirmModal(newAction, function() {
+                            if (isOpen) {
+                                knob.style.transform = 'translateY(-50%) translateX(0px)';
+                                switchBtn.classList.remove('bg-green-500', 'border-green-400');
+                                switchBtn.classList.add('bg-gray-300', 'border-gray-400');
+                            } else {
+                                knob.style.transform = 'translateY(-50%) translateX(56px)';
+                                switchBtn.classList.remove('bg-gray-300', 'border-gray-400');
+                                switchBtn.classList.add('bg-green-500', 'border-green-400');
+                            }
+                            actionInput.value = newAction;
+                            setTimeout(function() {
+                                form.submit();
+                            }, 350);
+                        });
+                    };
+                }
+            });
+
+            async function updateStats() {
+                try {
+                    const res = await fetch("/vote/api/landing_stats/");
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (document.getElementById("voter-count")) document.getElementById("voter-count").textContent = data.voter_count;
+                        if (document.getElementById("waiting-count")) document.getElementById("waiting-count").textContent = data.waiting_count;
+                        if (document.getElementById("voted-count")) document.getElementById("voted-count").textContent = data.voted_count;
+                        if (document.getElementById("vote-results")) {
+                            let resultsHtml = '';
+                            for (const result of data.results) {
+                                resultsHtml += `<div class='flex justify-between w-full'><span>${result.candidate}</span><span class='font-mono'>${result.votes}</span></div>`;
+                            }
+                            document.getElementById("vote-results").innerHTML = resultsHtml;
+                        }
+                    }
+                } catch (e) {}
+            }
+            updateStats();
+            setInterval(updateStats, 2000);
+        </script>
+        <div class="text-sm text-gray-500 text-center">Your vote is private and can only be submitted once.<br>For help, contact the election organizer.</div>
+    </div>
+</body>
+</html>

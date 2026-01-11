@@ -1,0 +1,20 @@
+voteDB
+voteUser
+VoteDB2026
+
+sudo -u postgres psql
+CREATE DATABASE voteDB;
+
+CREATE USER voteUser WITH PASSWORD 'VoteDB2026';
+
+ALTER ROLE voteUser SET client_encoding TO 'utf8';
+ALTER ROLE voteUser SET default_transaction_isolation TO 'read committed';
+ALTER ROLE voteUser SET timezone TO 'Asia/Phnom_Penh';
+GRANT ALL PRIVILEGES ON DATABASE voteDB TO voteUser;
+
+\q
+psql -U voteUser
+
+
+mkdir ~/voteSystem
+cd ~/voteSystem
