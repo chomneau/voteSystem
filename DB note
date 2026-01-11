@@ -3,17 +3,17 @@ voteUser
 VoteDB2026
 
 sudo -u postgres psql
-CREATE DATABASE voteDB;
+CREATE DATABASE votesystem_db;
 
-CREATE USER voteUser WITH PASSWORD 'VoteDB2026';
+CREATE USER votesystemuser WITH PASSWORD 'wEo9L3#k2026';
 
-ALTER ROLE voteUser SET client_encoding TO 'utf8';
-ALTER ROLE voteUser SET default_transaction_isolation TO 'read committed';
-ALTER ROLE voteUser SET timezone TO 'Asia/Phnom_Penh';
-GRANT ALL PRIVILEGES ON DATABASE voteDB TO voteUser;
+ALTER ROLE votesystemuser SET client_encoding TO 'utf8';
+ALTER ROLE votesystemuser SET default_transaction_isolation TO 'read committed';
+ALTER ROLE votesystemuser SET timezone TO 'Asia/Phnom_Penh';
+GRANT ALL PRIVILEGES ON DATABASE votesystem_db TO votesystemuser;
 
 \q
-psql -U voteUser
+psql -U votesystemuser
 
 
 mkdir ~/voteSystem
