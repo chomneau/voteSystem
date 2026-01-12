@@ -31,9 +31,7 @@ SECRET_KEY = 'django-insecure-xx1!z&d(+)-$g4ijl&nkw#mba7y95y2ycai!i@ij141(z8g6-t
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '10.138.1.234',
-    'localhost',
-    '127.0.0.1',
+    'votesystem-app-agdtz.ondigitalocean.app'
 ]
 
 
