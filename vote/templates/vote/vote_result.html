@@ -93,7 +93,7 @@
 </head>
 <body class="bg-gradient-to-br from-blue-100 via-blue-50 to-blue-200 min-h-screen flex items-center justify-center">
     <div class="bg-white/90 backdrop-blur rounded-2xl shadow-2xl p-8 max-w-screen-xl w-full flex flex-col items-center border border-blue-100 animate-fade-in" style="margin:50px;">
-        <h1 class="text-3xl font-extrabold text-blue-700 mb-6 text-center tracking-tight animate-bounce-in">Live Voting Results</h1>
+        <h1 class="text-3xl font-extrabold text-blue-700 mb-6 text-center tracking-tight animate-bounce-in">Live Voting Results for Staff Representatives for CI Cambodia</h1>
         <!-- Original 3 stats cards at the top -->
         <div class="flex flex-col md:flex-row gap-6 w-full mb-8 justify-center items-stretch">
             <div class="flex-1 min-w-0 bg-blue-50 rounded-lg p-6 flex flex-col items-center shadow border border-blue-100 animate-bounce-in">
@@ -115,30 +115,30 @@
         <!-- Top 4 vote cards below -->
         <div class="flex flex-col md:flex-row gap-6 w-full mb-6 justify-center items-stretch">
             <div class="flex-1 min-w-[180px] max-w-xs bg-gradient-to-br from-blue-200 to-blue-400 rounded-lg p-6 flex flex-col items-center shadow bling-shadow animate-fade-in-up delay-0">
-                <span class="text-lg font-bold text-blue-900 mb-2">President</span>
+                <span class="text-lg font-bold text-blue-900 mb-2">President 1</span>
                 <span id="president-name" class="text-xl font-semibold text-blue-800">-</span>
                 <span id="president-votes" class="text-2xl font-mono text-blue-900 mt-1">0</span>
             </div>
             <div class="flex-1 min-w-[180px] max-w-xs bg-gradient-to-br from-yellow-200 to-yellow-400 rounded-lg p-6 flex flex-col items-center shadow bling-shadow animate-fade-in-up delay-1">
-                <span class="text-lg font-bold text-yellow-900 mb-2">Vice President</span>
+                <span class="text-lg font-bold text-yellow-900 mb-2">President 2</span>
                 <span id="vice-president-name" class="text-xl font-semibold text-yellow-800">-</span>
                 <span id="vice-president-votes" class="text-2xl font-mono text-yellow-900 mt-1">0</span>
             </div>
             <div class="flex-1 min-w-[180px] max-w-xs bg-gradient-to-br from-green-200 to-green-400 rounded-lg p-6 flex flex-col items-center shadow animated-border animate-fade-in-up delay-2">
-                <span class="text-lg font-bold text-green-900 mb-2">Member 1</span>
+                <span class="text-lg font-bold text-green-900 mb-2">Assistance 1</span>
                 <span id="member1-name" class="text-xl font-semibold text-green-800">-</span>
                 <span id="member1-votes" class="text-2xl font-mono text-green-900 mt-1">0</span>
             </div>
             <div class="flex-1 min-w-[180px] max-w-xs bg-gradient-to-br from-purple-200 to-purple-400 rounded-lg p-6 flex flex-col items-center shadow animated-border animate-fade-in-up delay-3">
-                <span class="text-lg font-bold text-purple-900 mb-2">Member 2</span>
+                <span class="text-lg font-bold text-purple-900 mb-2">Assistance 2</span>
                 <span id="member2-name" class="text-xl font-semibold text-purple-800">-</span>
                 <span id="member2-votes" class="text-2xl font-mono text-purple-900 mt-1">0</span>
             </div>
         </div>
-        <div class="w-full mt-8">
+        <div class="w-full mt-8 overflow-x-auto">
             <h2 class="text-xl font-bold text-blue-700 mb-4">Candidate Results</h2>
-            <div id="candidate-list" class="bg-white rounded-lg p-4 shadow border border-blue-100 animate-fade-in mb-8 grid grid-cols-1 md:grid-cols-6 gap-4">
-                <div class="text-gray-500 col-span-6">Loading...</div>
+            <div id="candidate-list" class="bg-white rounded-lg p-4 shadow border border-blue-100 animate-fade-in mb-8 grid gap-4" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                <div class="text-gray-500">Loading...</div>
             </div>
             <h2 class="text-xl font-bold text-blue-700 mb-4">Voter List</h2>
             <div id="voter-list" class="bg-gray-50 rounded-lg p-4 shadow border border-gray-200 animate-fade-in" style="max-height:400px;overflow-y:auto;">
@@ -174,31 +174,33 @@
                 for (let i = 0; i < 4; i++) {
                     const nameId = cardIds[i][0];
                     const votesId = cardIds[i][1];
-                    if (top[i]) {
+                    if (top[i] && top[i].votes > 0) {
                         document.getElementById(nameId).textContent = top[i].candidate;
                         document.getElementById(votesId).textContent = top[i].votes;
                     } else {
                         document.getElementById(nameId).textContent = "-";
-                        document.getElementById(votesId).textContent = "0";
+                        document.getElementById(votesId).textContent = "-";
                     }
                 }
-                // Candidate results in 6 columns, 10 rows each
+                // Candidate results in 6 columns, 10 rows each (sorted alphabetically)
                 let candidateHtml = '';
                 let colCount = 6;
                 let rowCount = 10;
-                let total = data.results.length;
+                // Sort candidates alphabetically by name
+                let sortedResults = [...data.results].sort((a, b) => a.candidate.localeCompare(b.candidate));
+                let total = sortedResults.length;
                 for (let col = 0; col < colCount; col++) {
                     candidateHtml += `<div class='flex flex-col gap-1'>`;
                     for (let row = 0; row < rowCount; row++) {
                         let idx = col * rowCount + row;
                         if (idx < total) {
-                            let result = data.results[idx];
-                            candidateHtml += `<div class='flex items-center justify-between w-full text-base py-1 border-b border-blue-50'>
-                                <span class='flex items-center gap-2'>
-                                    <svg class='w-5 h-5 text-blue-400' fill='none' stroke='currentColor' stroke-width='2' viewBox='0 0 24 24'><circle cx='12' cy='8' r='4' /><path d='M4 20c0-4 4-7 8-7s8 3 8 7' /></svg>
-                                    <span class='font-semibold text-blue-700'>${result.candidate}</span>
+                            let result = sortedResults[idx];
+                            candidateHtml += `<div class='flex items-center justify-between w-full text-base py-1 border-b border-blue-50 gap-2'>
+                                <span class='flex items-center gap-2 min-w-0 flex-1'>
+                                    <svg class='w-5 h-5 text-blue-400 flex-shrink-0' fill='none' stroke='currentColor' stroke-width='2' viewBox='0 0 24 24'><circle cx='12' cy='8' r='4' /><path d='M4 20c0-4 4-7 8-7s8 3 8 7' /></svg>
+                                    <span class='font-semibold text-blue-700 truncate' title='${result.candidate}'>${result.candidate}</span>
                                 </span>
-                                <span class='font-mono font-bold text-green-700'>${result.votes}</span>
+                                <span class='font-mono font-bold text-green-700 flex-shrink-0'>${result.votes}</span>
                             </div>`;
                         }
                     }

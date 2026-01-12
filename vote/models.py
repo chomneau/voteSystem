@@ -28,22 +28,9 @@ class Candidate(models.Model):
 	def __str__(self):
 		return self.name
 
-class DeviceFingerprint(models.Model):
-	"""Store device fingerprints to detect duplicate voters across sessions"""
-	fingerprint_hash = models.CharField(max_length=256, unique=True, db_index=True)
-	ip_address = models.GenericIPAddressField(null=True, blank=True)
-	user_agent = models.TextField(blank=True)
-	has_voted = models.BooleanField(default=False)
-	created_at = models.DateTimeField(auto_now_add=True)
-	updated_at = models.DateTimeField(auto_now=True)
-
-	def __str__(self):
-		return f"Device {self.fingerprint_hash[:16]}... ({'voted' if self.has_voted else 'not voted'})"
-
 class BallotToken(models.Model):
 	token = models.CharField(max_length=128, unique=True, default=generate_token)
 	user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # allow anonymous
-	device_fingerprint = models.ForeignKey(DeviceFingerprint, on_delete=models.SET_NULL, null=True, blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	used = models.BooleanField(default=False)
 	used_at = models.DateTimeField(null=True, blank=True)

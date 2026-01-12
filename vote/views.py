@@ -90,39 +90,6 @@ def is_mobile_device(request):
 	]
 	return any(pattern in user_agent for pattern in mobile_patterns)
 
-def get_client_ip(request):
-	"""Get client IP address from request"""
-	x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-	if x_forwarded_for:
-		ip = x_forwarded_for.split(',')[0].strip()
-	else:
-		ip = request.META.get('REMOTE_ADDR')
-	return ip
-
-def create_device_fingerprint(request):
-	"""Create a device fingerprint hash from request data"""
-	import hashlib
-	from .models import DeviceFingerprint
-	
-	ip = get_client_ip(request)
-	user_agent = request.META.get('HTTP_USER_AGENT', '')
-	accept_language = request.META.get('HTTP_ACCEPT_LANGUAGE', '')
-	accept_encoding = request.META.get('HTTP_ACCEPT_ENCODING', '')
-	
-	# Create fingerprint from multiple factors
-	fingerprint_data = f"{ip}|{user_agent}|{accept_language}|{accept_encoding}"
-	fingerprint_hash = hashlib.sha256(fingerprint_data.encode()).hexdigest()
-	
-	# Get or create device fingerprint record
-	device, created = DeviceFingerprint.objects.get_or_create(
-		fingerprint_hash=fingerprint_hash,
-		defaults={
-			'ip_address': ip,
-			'user_agent': user_agent[:500] if user_agent else ''
-		}
-	)
-	return device
-
 def vote_start(request):
 	# Only allow access from mobile devices (smartphones)
 	if not is_mobile_device(request):
@@ -136,16 +103,9 @@ def vote_start(request):
 			"message": "You have already voted. Each person can only vote once."
 		})
 	
-	# Check device fingerprint in database
-	device = create_device_fingerprint(request)
-	if device.has_voted:
-		return render(request, "vote/already_voted.html", {
-			"message": "This device has already been used to vote. Each device can only vote once."
-		})
-	
-	# Generate a new token for this session, linked to device
+	# Generate a new token for this session
 	token = generate_token()
-	BallotToken.objects.create(token=token, user=None, device_fingerprint=device)
+	BallotToken.objects.create(token=token, user=None)
 	return redirect('vote_waiting', token=token)
 
 def vote_waiting(request, token):
@@ -173,11 +133,6 @@ def vote_view(request, token):
 		ballot.used = True
 		ballot.used_at = timezone.now()
 		ballot.save()
-		
-		# Mark device fingerprint as having voted
-		if ballot.device_fingerprint:
-			ballot.device_fingerprint.has_voted = True
-			ballot.device_fingerprint.save()
 		
 		# Set cookie to prevent voting again from this device
 		response = render(request, "vote/thanks.html")
