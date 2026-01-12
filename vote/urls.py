@@ -6,6 +6,7 @@ urlpatterns = [
     path("qr_img/", views.display_qr, name="vote_qr_img"),
     path("start/", views.vote_start, name="vote_start"),
     path("waiting/<str:token>/", views.vote_waiting, name="vote_waiting"),
+    path("thanks/", views.vote_thanks, name="vote_thanks"),
     path("result/", views.vote_result, name="vote_result"),
     path("<str:token>/", views.vote_view, name="vote"),
     path("api/voter_count/", views.voter_count_api, name="voter_count_api"),

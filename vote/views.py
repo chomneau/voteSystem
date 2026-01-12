@@ -2,6 +2,13 @@ def vote_result(request):
 	# Render the modern vote result page
 	return render(request, "vote/vote_result.html")
 
+def vote_thanks(request):
+	# Show thanks page only if user just voted, otherwise redirect to results
+	if request.COOKIES.get('has_voted') != 'true':
+		# User hasn't voted, redirect to start
+		return redirect('vote_start')
+	return render(request, "vote/thanks.html")
+
 def voting_status_api(request):
 	# Returns current voting status (open/closed)
 	voting_status = VotingStatus.get_status()
@@ -103,10 +110,26 @@ def vote_start(request):
 			"message": "You have already voted. Each person can only vote once."
 		})
 	
+	# Check if this device already has an unused token (prevent multiple tokens from same device)
+	existing_token = request.COOKIES.get('ballot_token')
+	if existing_token:
+		# Verify the token still exists and is unused
+		try:
+			existing_ballot = BallotToken.objects.get(token=existing_token, used=False)
+			# Token exists and is unused, reuse it
+			return redirect('vote_waiting', token=existing_token)
+		except BallotToken.DoesNotExist:
+			# Token was used or doesn't exist, will generate a new one
+			pass
+	
 	# Generate a new token for this session
 	token = generate_token()
 	BallotToken.objects.create(token=token, user=None)
-	return redirect('vote_waiting', token=token)
+	
+	# Set cookie with the token so same device gets same token on rescan
+	response = redirect('vote_waiting', token=token)
+	response.set_cookie('ballot_token', token, max_age=60*60*24, httponly=True, samesite='Lax')  # 24 hours
+	return response
 
 def vote_waiting(request, token):
 	# Show waiting page with unique code and join button
@@ -134,9 +157,10 @@ def vote_view(request, token):
 		ballot.used_at = timezone.now()
 		ballot.save()
 		
-		# Set cookie to prevent voting again from this device
-		response = render(request, "vote/thanks.html")
+		# Redirect to thanks page (PRG pattern) with cookie
+		response = redirect('vote_thanks')
 		response.set_cookie('has_voted', 'true', max_age=60*60*24*365, httponly=True, samesite='Lax')  # 1 year
+		response.delete_cookie('ballot_token')  # Clear the ballot token cookie
 		return response
 
 	candidates = Candidate.objects.all()

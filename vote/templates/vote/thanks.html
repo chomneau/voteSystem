@@ -53,7 +53,21 @@
             <svg class="w-6 h-6 text-white animate-fade-in" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
             Click here to see the result
         </a>
+        <p class="text-sm text-gray-500 mt-4">Redirecting to results in <span id="countdown">10</span> seconds...</p>
     </div>
+    <script>
+    // Auto redirect to results page after 10 seconds
+    let seconds = 10;
+    const countdownEl = document.getElementById('countdown');
+    const countdownInterval = setInterval(() => {
+        seconds--;
+        countdownEl.textContent = seconds;
+        if (seconds <= 0) {
+            clearInterval(countdownInterval);
+            window.location.href = '/vote/result/';
+        }
+    }, 1000);
+    </script>
     <script>
     // Simple confetti animation
     const canvas = document.getElementById('confetti-canvas');
