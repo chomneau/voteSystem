@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import warnings
+
+# Suppress Django model re-registration warnings during auto-reload
+warnings.filterwarnings('ignore', message='Model .* was already registered')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +29,9 @@ SECRET_KEY = 'django-insecure-xx1!z&d(+)-$g4ijl&nkw#mba7y95y2ycai!i@ij141(z8g6-t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+
+]
 
 
 # Application definition
