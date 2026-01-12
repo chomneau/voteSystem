@@ -12,12 +12,13 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import warnings
-
+import os
 # Suppress Django model re-registration warnings during auto-reload
 warnings.filterwarnings('ignore', message='Model .* was already registered')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 
 # Quick-start development settings - unsuitable for production
